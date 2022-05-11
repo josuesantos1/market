@@ -2,7 +2,9 @@
   (:gen-class) ; for -main method in uberjar
   (:require [io.pedestal.http :as server]
             [io.pedestal.http.route :as route]
-            [market.service :as service]))
+            [market.service :as service]
+            
+            [market.database.database :as db]))
 
 ;; This is an adapted service map, that can be started and stopped
 ;; From the REPL you can call server/start and server/stop on this service
@@ -29,28 +31,20 @@
       server/create-server
       server/start))
 
+(def tables [["create table if not exists products 
+               (id serial not null primary key,
+                title varchar(32),
+                description varchar(255),
+                price int,
+                image varchar(255),
+                amount int
+               )"]])
+
 (defn -main
   "The entry-point for 'lein run'"
   [& args]
   (println "\nCreating your server...")
+  (db/create-tables tables)
+  (println "\n created tables \n")
   (server/start runnable-service))
-
-;; If you package the service up as a WAR,
-;; some form of the following function sections is required (for io.pedestal.servlet.ClojureVarServlet).
-
-;;(defonce servlet  (atom nil))
-;;
-;;(defn servlet-init
-;;  [_ config]
-;;  ;; Initialize your app here.
-;;  (reset! servlet  (server/servlet-init service/service nil)))
-;;
-;;(defn servlet-service
-;;  [_ request response]
-;;  (server/servlet-service @servlet request response))
-;;
-;;(defn servlet-destroy
-;;  [_]
-;;  (server/servlet-destroy @servlet)
-;;  (reset! servlet nil))
 
